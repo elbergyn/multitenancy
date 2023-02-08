@@ -40,8 +40,6 @@ public class JwtDecoder {
 				.orElse(null);
 	}
 
-
-	
 	private SignedJWT getSignedJWT() {
 		 try {
 			 String token = jwtToken.substring(7);
@@ -54,7 +52,7 @@ public class JwtDecoder {
 	private JWTClaimsSet validateExpiration(JWTClaimsSet jwtClaimsSet){
 		Date expiration = jwtClaimsSet.getExpirationTime();
 		if(expiration.before(new Date())){
-			throw new CredentialsException("Expired token");
+			throw new CredentialsException("Expired token, reauthenticate");
 		}
 		return jwtClaimsSet;
 	}
