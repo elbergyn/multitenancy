@@ -3,6 +3,7 @@ package br.tec.dig.multitenancy.separate.schema.security.domain;
 import br.tec.dig.multitenancy.separate.schema.security.model.JwtClaim;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
@@ -37,13 +38,13 @@ public class JwtDecoder {
 				.map(JWTClaimsSet::getClaims)
 				.map(stringObjectMap -> stringObjectMap.get(jwtClaim.getValue()))
 				.map(Object::toString)
-				.orElse(null);
+				.orElseThrow(() -> new CredentialsException("Tenant not defined"));
 	}
 
 	private SignedJWT getSignedJWT() {
 		 try {
-			 String token = jwtToken.substring(7);
-			return SignedJWT.parse(token);
+			 String token = jwtToken.replace("Bearer ","");
+			 return SignedJWT.parse(token);
 		} catch (ParseException e) {
 			throw new CredentialsException("Cannot parse jwt token");
 		}
