@@ -1,27 +1,27 @@
 package br.tec.dig.multitenancy.separate.schema.security.domain;
 
-import java.text.ParseException;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
-
 import br.tec.dig.multitenancy.separate.schema.security.model.JwtClaim;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.security.SignatureException;
+import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Optional;
 
 
 public class JwtDecoder {
 	private static final String AUTHORIZATION = "Authorization";
-	private static final String JWT_TOKEN_LABEL = "token";
-	
+
 	private final String jwtToken;
 	
 	public JwtDecoder(HttpServletRequest request) {
 		this.jwtToken = Optional.ofNullable(request)
-					.map(req -> req.getHeader(AUTHORIZATION))
-//					.filter(headerWithToken -> headerWithToken.contains(JWT_TOKEN_LABEL))
-//	    			.map(headerWithToken -> headerWithToken.substring(headerWithToken.indexOf(JWT_TOKEN_LABEL)+JWT_TOKEN_LABEL.length()+1))
-	    			.map(token -> token.trim())
+				.map(req -> req.getHeader(AUTHORIZATION))
+				.map(token -> token.trim())
 	                .orElseThrow(() -> {
 	                    return new CredentialsException("Missing Authentication Token");
 	                });
@@ -31,20 +31,28 @@ public class JwtDecoder {
 	public String getJwtParameter(JwtClaim jwtClaim) {
 		return Optional.ofNullable(getSignedJWT())
 				.map(this::getJWTClaimsSet)
+				.map(this::validateExpiration)
 				.map(JWTClaimsSet::getClaims)
 				.map(stringObjectMap -> stringObjectMap.get(jwtClaim.getValue()))
 				.map(Object::toString)
-				.orElse(null);
+				.orElseThrow(() -> new CredentialsException("Tenant not defined"));
 	}
-	
+
 	private SignedJWT getSignedJWT() {
 		 try {
 			 String token = jwtToken.replace("Bearer ","");
-			return SignedJWT.parse(token);
+			 return SignedJWT.parse(token);
 		} catch (ParseException e) {
 			throw new CredentialsException("Cannot parse jwt token");
 		}
-			
+	}
+
+	private JWTClaimsSet validateExpiration(JWTClaimsSet jwtClaimsSet){
+		Date expiration = jwtClaimsSet.getExpirationTime();
+		if(expiration.before(new Date())){
+			throw new CredentialsException("Expired token, reauthenticate");
+		}
+		return jwtClaimsSet;
 	}
 	
 	private JWTClaimsSet getJWTClaimsSet(SignedJWT signedJWT) {

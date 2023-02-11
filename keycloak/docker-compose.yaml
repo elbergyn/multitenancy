@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  app:
+    image: jboss/keycloak:15.0.0
+    container_name: keycloak-multitenancy
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+        #- KEYCLOAK_IMPORT=/keycloak-realms/realm-export.json
+      - DB_VENDOR=h2
+    volumes: 
+      #- ./realm-export.json:/tmp/realm-export.json
+      - ./.docker/keycloak:/opt/jboss/keycloak/standalone/data
+    ports:
+      - 8081:8080
