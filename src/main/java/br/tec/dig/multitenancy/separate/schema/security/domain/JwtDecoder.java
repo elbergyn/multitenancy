@@ -3,12 +3,9 @@ package br.tec.dig.multitenancy.separate.schema.security.domain;
 import br.tec.dig.multitenancy.separate.schema.security.model.JwtClaim;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.security.SignatureException;
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
 
